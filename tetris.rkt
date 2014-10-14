@@ -1,15 +1,6 @@
 ;; The first three lines of this file were inserted by DrRacket. They record metadata
 ;; about the language level of this file in a form that our tools can easily process.
 #reader(lib "htdp-beginner-reader.ss" "lang")((modname tetris) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f ())))
-;; Instructions:
-;; P: pauses and unpauses the game
-;; Left and Right: Move the current block
-;; Up: Rotates current block left
-;; Down: Rotates current block right
-;; Space: Fast fall
-
-;; Each line cleared adds one to your score
-;; The game ends when the blocks extend past the top of the screen
 
 (require 2htdp/image)
 (require 2htdp/universe)
@@ -61,9 +52,9 @@
 (define BG (empty-scene (* PIXELS/CELL BOARDWIDTH)
                         (* PIXELS/CELL BOARDHEIGHT)))
 
-(define INITIAL-Y+1 (+ BOARDHEIGHT 1))
-(define INITIAL-Y+2 (+ BOARDHEIGHT 2))
-(define INITIAL-X   (/ BOARDWIDTH 2))
+(define INITIAL-Y-1 0)
+(define INITIAL-Y-2 1)
+(define INITIAL-X   (floor (/ BOARDWIDTH 2)))
 (define INITIAL-X+1 (+ INITIAL-X 1))
 (define INITIAL-X+2 (+ INITIAL-X 2))
 (define INITIAL-X-1 (- INITIAL-X 1))
@@ -72,53 +63,63 @@
 
 
 
-(define tetra-o (make-tetra (make-posn (+ INITIAL-X-1 .5) (+ INITIAL-Y+1 .5)) 
-                            (list (make-block INITIAL-X-1 INITIAL-Y+1 'green) 
-                                  (make-block INITIAL-X INITIAL-Y+1 'green)
-                                  (make-block INITIAL-X-1 INITIAL-Y+2 'green) 
-                                  (make-block INITIAL-X INITIAL-Y+2 'green))))
+(define tetra-o (make-tetra (make-posn (+ INITIAL-X-1 .5) (+ INITIAL-Y-1 .5)) 
+                            (list (make-block INITIAL-X-1 INITIAL-Y-1 'green) 
+                                  (make-block INITIAL-X INITIAL-Y-1 'green)
+                                  (make-block INITIAL-X-1 INITIAL-Y-2 'green) 
+                                  (make-block INITIAL-X INITIAL-Y-2 'green))))
 
-(define tetra-i (make-tetra (make-posn (+ INITIAL-X-1 .5) (+ INITIAL-Y+1 .5))
-                            (list (make-block INITIAL-X-2 INITIAL-Y+1 'blue) 
-                                  (make-block INITIAL-X-1 INITIAL-Y+1 'blue)
-                                  (make-block INITIAL-X INITIAL-Y+1 'blue) 
-                                  (make-block INITIAL-X+1 INITIAL-Y+1 'blue))))
+(define tetra-i (make-tetra (make-posn (+ INITIAL-X-1 .5) (+ INITIAL-Y-1 .5))
+                            (list (make-block INITIAL-X-2 INITIAL-Y-1 'blue) 
+                                  (make-block INITIAL-X-1 INITIAL-Y-1 'blue)
+                                  (make-block INITIAL-X INITIAL-Y-1 'blue) 
+                                  (make-block INITIAL-X+1 INITIAL-Y-1 'blue))))
 
-(define tetra-l (make-tetra (make-posn INITIAL-X INITIAL-Y+1)
-                            (list (make-block INITIAL-X-1 INITIAL-Y+1 'purple) 
-                                  (make-block INITIAL-X INITIAL-Y+1 'purple)
-                                  (make-block INITIAL-X+1 INITIAL-Y+1 'purple) 
-                                  (make-block INITIAL-X+1 INITIAL-Y+2 'purple))))
+(define tetra-l (make-tetra (make-posn INITIAL-X INITIAL-Y-1)
+                            (list (make-block INITIAL-X-1 INITIAL-Y-1 'purple) 
+                                  (make-block INITIAL-X INITIAL-Y-1 'purple)
+                                  (make-block INITIAL-X+1 INITIAL-Y-1 'purple) 
+                                  (make-block INITIAL-X+1 INITIAL-Y-2 'purple))))
 
-(define tetra-j (make-tetra (make-posn INITIAL-X-1 INITIAL-Y+1)
-                            (list (make-block INITIAL-X-1 INITIAL-Y+1 'cyan) 
-                                  (make-block INITIAL-X-1 INITIAL-Y+2 'cyan)
-                                  (make-block INITIAL-X INITIAL-Y+1 'cyan) 
-                                  (make-block INITIAL-X+1 INITIAL-Y+1 'cyan))))
+(define tetra-j (make-tetra (make-posn INITIAL-X-1 INITIAL-Y-1)
+                            (list (make-block INITIAL-X-1 INITIAL-Y-1 'cyan) 
+                                  (make-block INITIAL-X-1 INITIAL-Y-2 'cyan)
+                                  (make-block INITIAL-X INITIAL-Y-1 'cyan) 
+                                  (make-block INITIAL-X+1 INITIAL-Y-1 'cyan))))
 
-(define tetra-t (make-tetra (make-posn INITIAL-X INITIAL-Y+1)
-                            (list (make-block INITIAL-X-1 INITIAL-Y+1 'orange) 
-                                  (make-block INITIAL-X INITIAL-Y+1 'orange)
-                                  (make-block INITIAL-X INITIAL-Y+2 'orange) 
-                                  (make-block INITIAL-X+1 INITIAL-Y+1 'orange))))
+(define tetra-t (make-tetra (make-posn INITIAL-X INITIAL-Y-1)
+                            (list (make-block INITIAL-X-1 INITIAL-Y-1 'orange) 
+                                  (make-block INITIAL-X INITIAL-Y-1 'orange)
+                                  (make-block INITIAL-X INITIAL-Y-2 'orange) 
+                                  (make-block INITIAL-X+1 INITIAL-Y-1 'orange))))
 
-(define tetra-z (make-tetra (make-posn INITIAL-X INITIAL-Y+1)
-                            (list (make-block INITIAL-X-1 INITIAL-Y+2 'pink) 
-                                  (make-block INITIAL-X INITIAL-Y+1 'pink)
-                                  (make-block INITIAL-X INITIAL-Y+2 'pink) 
-                                  (make-block INITIAL-X+1 INITIAL-Y+1 'pink))))
+(define tetra-z (make-tetra (make-posn INITIAL-X INITIAL-Y-1)
+                            (list (make-block INITIAL-X-1 INITIAL-Y-2 'pink) 
+                                  (make-block INITIAL-X INITIAL-Y-1 'pink)
+                                  (make-block INITIAL-X INITIAL-Y-2 'pink) 
+                                  (make-block INITIAL-X+1 INITIAL-Y-1 'pink))))
 
-(define tetra-s (make-tetra (make-posn INITIAL-X INITIAL-Y+1)
-                            (list (make-block INITIAL-X-1 INITIAL-Y+1 'red) 
-                                  (make-block INITIAL-X INITIAL-Y+1 'red)
-                                  (make-block INITIAL-X INITIAL-Y+2 'red) 
-                                  (make-block INITIAL-X+1 INITIAL-Y+2 'red))))
+(define tetra-s (make-tetra (make-posn INITIAL-X INITIAL-Y-1)
+                            (list (make-block INITIAL-X-1 INITIAL-Y-1 'red) 
+                                  (make-block INITIAL-X INITIAL-Y-1 'red)
+                                  (make-block INITIAL-X INITIAL-Y-2 'red) 
+                                  (make-block INITIAL-X+1 INITIAL-Y-2 'red))))
 
 
 (define INITIAL-WORLD (make-world tetra-j empty))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; FUNCTIONS
+
+
+;;;;;;;;;;;;;;;;;RENDERING;;;;;;;;;;;;;;;
+
+;; draw-world places both bsets onto the bg
+;; world -> image 
+(define (draw-world world)
+  (place-bset (append (world-pile world) 
+                      (tetra-blocks (world-tetra world)))
+              BG))
 
 ;; block -> image
 ;; block->image turns a block struct into a (square xy color)
@@ -131,18 +132,45 @@
   (cond [(empty? bset) image]
         [else (place-image
             (block->image (first bset))
-            (block-x (first bset)) (block-y (first bset))
+            (* PIXELS/CELL (- (block-x (first bset)) .5)) (* PIXELS/CELL (- (block-y (first bset)) .5))
             (place-bset (rest bset) BG))]))
 
+(check-expect (place-bset (tetra-blocks tetra-o) BG) (place-image  (square PIXELS/CELL "solid" "green") 
+                                                    (* PIXELS/CELL (- INITIAL-X-1 .5)) (* PIXELS/CELL (- INITIAL-Y-1 .5))
+                                                    (place-image (square PIXELS/CELL "solid" "green")
+                                                                  (* PIXELS/CELL(- INITIAL-X-1 .5))  (* PIXELS/CELL (- INITIAL-Y-2 .5))
+                                                                 (place-image (square PIXELS/CELL "solid" "green") 
+                                                                               (* PIXELS/CELL (- INITIAL-X .5)) (* PIXELS/CELL (- INITIAL-Y-1 .5))
+                                                                               (place-image (square PIXELS/CELL "solid" "green")
+                                                                                             (* PIXELS/CELL (- INITIAL-X .5))  (* PIXELS/CELL (- INITIAL-Y-2 .5))
+                                                                                            BG)))))
+;;;;;;;;;;;;;;;MOVEMENT;;;;;;;;;;;;;;;;;;;
 
-;; move-block moves a single block
-;; block -> block
+;; key takes an input and interprets
+;; world - key -> world
+(define (key world key)
+  (make-world  (cond [(key=? "left" key) (make-tetra (posn-move (tetra-center (world-tetra world)) "left") (bset-move (tetra-blocks (world-tetra world)) "left"))]
+                     [(key=? "right" key) (make-tetra (posn-move (tetra-center (world-tetra world)) "right") (bset-move (tetra-blocks (world-tetra world)) "right"))]
+                     [else (world-tetra world)])
+              (world-pile world)))
 
 ;; bset-move moves a bset
-;; bset -> bset
-
-;; tetra-move moves a tetre
-;; tetra -> tetra
+;; bset string -> bset
+(define (bset-move bset direction)
+  (cond [(empty? bset) empty]
+        [(string=? direction "right") (cons (make-block (+ (block-x (first bset)) 1) 
+                                                 (block-y (first bset)) 
+                                                 (block-color (first bset))) 
+                                     (bset-move (rest bset) direction))]
+         [(string=? direction "left") (cons (make-block (- (block-x (first bset)) 1) 
+                                                 (block-y (first bset)) 
+                                                 (block-color (first bset))) 
+                                     (bset-move (rest bset) direction))]))
+;; posn-move moves a tetras posn
+;; posn -> posn
+(define (posn-move posn direction)
+  (cond [(string=? direction "right") (make-posn (+ (posn-x posn) 1) (posn-y posn))] 
+        [(string=? direction "left") (make-posn (- (posn-x posn) 1) (posn-y posn))]))
 
 ;; tetra-rotate moves all the blocks in a tetra as if theyre rotating
 ;; tetra -> tetra
@@ -152,8 +180,23 @@
 (define (gravity tetra)
   (make-tetra 
         (make-posn (posn-x (tetra-center tetra)) (+ 1 (posn-y (tetra-center tetra))))
-        (tetra-blocks tetra)))
+        (bset-gravity (tetra-blocks tetra))))
 
+;;block gravity takes a bset and applies +1 to each Y
+;; bset->bset
+(define (bset-gravity bset)
+  (cond [(empty? bset) empty]
+        [(block? (first bset)) (cons (make-block (block-x (first bset)) 
+                                                 (+ 1 (block-y (first bset))) 
+                                                 (block-color (first bset))) 
+                                     (bset-gravity (rest bset)))]))
+
+
+(check-expect (gravity tetra-o) (make-tetra (make-posn (+ INITIAL-X-1 .5) (+ INITIAL-Y-1 1.5)) 
+                            (list (make-block INITIAL-X-1 (+ 1 INITIAL-Y-1) 'green) 
+                                  (make-block INITIAL-X (+ 1 INITIAL-Y-1) 'green)
+                                  (make-block INITIAL-X-1 (+ 1 INITIAL-Y-2) 'green) 
+                                  (make-block INITIAL-X (+ 1 INITIAL-Y-2) 'green))))
 
 ;; block-rotate-ccw : Posn Block -> Block
 ;; Rotate the block 90 counterclockwise around the posn.
@@ -167,24 +210,20 @@
                     (posn-x c)))
               (block-color b)))
 
+
+;;;;;;;;;;;;;;;;;;;;;ON TICK;;;;;;;;;;;;;;;;
+
 ;; update-world updates the world
 ;; checks for collisions, lose state, score, applies gravity, 
 (define (update-world world) 
   (make-world (gravity (world-tetra world)) 
               (world-pile world)))
 
-;; draw-world places both bsets onto the bg
-;; world -> image 
-(define (draw-world world)
-  (place-bset (append (world-pile world) 
-                      (tetra-blocks (world-tetra world)))
-              BG))
-
 ;; gravity 
 
 (big-bang INITIAL-WORLD
           (to-draw draw-world)
           (on-tick update-world TICKRATE)
-        ;  (on-key key-handle)
+          (on-key key)
         ;  (stop-when game-over)
         )
